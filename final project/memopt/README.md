@@ -12,7 +12,7 @@ compared with the one before it. Each version is its own `.cu` file.
 
 | Version | File | Change (on top of the previous version) | Status |
 |---|---|---|---|
-| v0 | `v0_naive.cu` | naive: one thread per output, thread index walks the row dimension | todo |
+| v0 | `v0_naive.cu` | naive: one thread per output, thread index walks the row dimension | done |
 | v1 | `v1_coalesced.cu` | coalescing: thread index walks the contiguous dimension | todo |
 | v2a / v2b | `v2_smem_pad.cu` | shared-memory tiles without / with padding (bank conflicts) | todo |
 | v3 | `v3_float4.cu` | `float4` vectorized loads | todo |
@@ -97,3 +97,38 @@ N = 4096, d = 64. Each row is "before -> after" for one optimization.
 
 One section per version: what was slow, what changed, why it is faster, the
 measured before/after, and the profiler evidence. Added with each version.
+
+### v0: naive baseline (`v0_naive.cu`)
+
+Three kernels, written straight from the formula, one thread per output
+element:
+
+| Kernel | Thread mapping | Launch |
+|---|---|---|
+| `qk_v0` | x -> row i of S, y -> column j | 32 x 8 threads per block |
+| `softmax_v0` | one thread per row (max, exp + sum, divide) | 128 threads per block |
+| `pv_v0` | x -> row i of O, y -> column c | 32 x 8 threads per block |
+
+The problem is the mapping x -> row. A warp is 32 threads with consecutive
+`threadIdx.x`, and the hardware serves one warp-wide load in 32-byte
+sectors. If the 32 threads read 32 consecutive floats (128 bytes) that is
+4 sectors; here they read one float from each of 32 different rows:
+
+| Access (per warp, per loop step) | Addresses of the 32 threads | Sectors | Useful bytes |
+|---|---|---|---|
+| `Q[i*d + k]` in qk | 32 rows, stride d | 32 | 12.5 % |
+| `K[j*d + k]` in qk | same address | 1 (broadcast) | - |
+| `S[i*Nk + j]` store in qk | 32 rows, stride Nk | 32 | 12.5 % |
+| `row[j]` in softmax | 32 rows, stride Nk | 32 | 12.5 % |
+| `S[i*Nk + j]` in pv | 32 rows, stride Nk | 32 | 12.5 % |
+| `V[j*d + c]` in pv | same address | 1 (broadcast) | - |
+| `O[i*d + c]` store in pv | 32 rows, stride d | 32 | 12.5 % |
+
+So most memory instructions move 8x more sectors than needed. Part of this is
+hidden by the L1/L2 caches (a thread reads `Q[i*d + k]` for k = 0, 1, 2, ...,
+so the rest of a sector is often still in cache for the next step), which
+is why the measured gain of v1 can be smaller than 8x.
+
+The softmax kernel has a second problem: only Nq threads in total. For
+N = 4096 that is 128 warps for the whole GPU, and in the decode shape
+(Nq = 1) a single thread walks the whole row of length Nk.

@@ -21,7 +21,10 @@ struct Version {
 };
 
 // One line per version, added together with its .cu file.
-static const std::vector<Version> kVersions = {};
+extern const AttentionStages kV0;
+static const std::vector<Version> kVersions = {
+    {"v0", &kV0},
+};
 
 static const int kWarmup = 3;
 static const int kRepeat = 10;

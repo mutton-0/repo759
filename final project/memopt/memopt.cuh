@@ -14,5 +14,12 @@
 //
 // Versions (each one adds one memory optimization on top of the previous);
 // a line is added here together with each new version:
+//   v0  naive, three kernels, threadIdx.x walks the row dimension
+
+void attention_memopt_v0(const float* Q, const float* K, const float* V,
+                         float* O, int N, int d);
+void attention_memopt_v0_decode(const float* Q, const float* K,
+                                const float* V, float* O, int Nq, int Nk,
+                                int d);
 
 #endif
