@@ -13,7 +13,7 @@ compared with the one before it. Each version is its own `.cu` file.
 | Version | File | Change (on top of the previous version) | Status |
 |---|---|---|---|
 | v0 | `v0_naive.cu` | naive: one thread per output, thread index walks the row dimension | done |
-| v1 | `v1_coalesced.cu` | coalescing: thread index walks the contiguous dimension | todo |
+| v1 | `v1_coalesced.cu` | coalescing: thread index walks the contiguous dimension | done |
 | v2a / v2b | `v2_smem_pad.cu` | shared-memory tiles without / with padding (bank conflicts) | todo |
 | v3 | `v3_float4.cu` | `float4` vectorized loads | todo |
 | v4 | `v4_regblock.cu` | register blocking (each thread computes a small tile) | todo |
@@ -57,6 +57,7 @@ make ARCH=sm_120     # another GPU: set its compute capability
 ```
 
 On Euler (compute nodes only), from this folder: `sbatch run_euler.sh`.
+Profiler counters for some versions: `sbatch ncu_euler.sh v0 v1`.
 
 Output of one run:
 
@@ -85,13 +86,14 @@ csv,v1,4096,4096,64,...
 - **Sizes:** main table N = 4096, d = 64; sweeps N = 256 ... 8192 for d = 64
   and d = 128; decode shape Nq = 1.
 
-## Results (Euler, RTX 4000 Ada)
+## Results (Euler, RTX 4000 SFF Ada, cc 8.9)
 
 N = 4096, d = 64. Each row is "before -> after" for one optimization.
 
 | Version | qk (ms) | softmax (ms) | pv (ms) | total (ms) | GFLOP/s | speedup vs previous | max err |
 |---|---|---|---|---|---|---|---|
-| v0 | | | | | | - | |
+| v0 | 10.549 | 3.064 | 10.553 | 24.166 | 177.7 | - | 1.2e-07 |
+| v1 | | | | | | | |
 
 ## Notes per optimization
 
@@ -132,3 +134,44 @@ is why the measured gain of v1 can be smaller than 8x.
 The softmax kernel has a second problem: only Nq threads in total. For
 N = 4096 that is 128 warps for the whole GPU, and in the decode shape
 (Nq = 1) a single thread walks the whole row of length Nk.
+
+Measured on Euler (N = 4096, d = 64): 24.17 ms in total, of which QK^T
+10.55 ms (44 %), softmax 3.06 ms (13 %) and PV 10.55 ms (44 %). The two
+matrix products take almost 90 % of the time, so they are where the later
+optimizations (tiling, float4, register blocking) matter most.
+
+### v1: coalesced access (`v1_coalesced.cu`)
+
+Same arithmetic as v0; only the mapping of threads to data changes, so that
+`threadIdx.x` walks the dimension that is contiguous in memory:
+
+| Kernel | v0 mapping | v1 mapping |
+|---|---|---|
+| qk | x -> row i | x -> column j; K is first transposed to Kt (d x Nk) |
+| softmax | one thread per row | one block (256 threads) per row, threads stride over j |
+| pv | x -> row i | x -> column c |
+
+Accesses of one warp after the change:
+
+| Access | Addresses of the 32 threads | Sectors |
+|---|---|---|
+| `Q[i*d + k]` in qk | same address | 1 (broadcast) |
+| `Kt[k*Nk + j]` in qk | 32 consecutive floats | 4 |
+| `S[i*Nk + j]` store in qk | 32 consecutive floats | 4 |
+| `row[j]` in softmax | 32 consecutive floats | 4 |
+| `S[i*Nk + j]` in pv | same address | 1 (broadcast) |
+| `V[j*d + c]` in pv | 32 consecutive floats | 4 |
+| `O[i*d + c]` store in pv | 32 consecutive floats | 4 |
+
+Why K is transposed: with x -> j, reading `K[j*d + k]` directly would put
+neighboring threads d floats apart, the same problem as before. The
+transpose kernel costs one pass over K (Nk x d floats, 1 MB for N = 4096,
+d = 64) and is included in the qk time, while the qk kernel goes over all
+of Kt once for every query row, so the extra pass is small (its own time is
+in the profiler output).
+
+The softmax change also fixes the parallelism problem of v0: there are now
+Nq blocks of 256 threads instead of Nq threads, and the decode shape
+(Nq = 1) uses a whole block instead of one thread. The max and the sum of a
+row are combined with a shared-memory tree reduction (`block_reduce`); a
+warp-shuffle reduction is part B's topic.
