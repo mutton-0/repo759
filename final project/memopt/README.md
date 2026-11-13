@@ -88,12 +88,13 @@ csv,v1,4096,4096,64,...
 
 ## Results (Euler, RTX 4000 SFF Ada, cc 8.9)
 
-N = 4096, d = 64. Each row is "before -> after" for one optimization.
+N = 4096, d = 64. Each row is "before -> after" for one optimization. Rows
+compared with each other come from the same Slurm job.
 
 | Version | qk (ms) | softmax (ms) | pv (ms) | total (ms) | GFLOP/s | speedup vs previous | max err |
 |---|---|---|---|---|---|---|---|
-| v0 | 10.549 | 3.064 | 10.553 | 24.166 | 177.7 | - | 1.2e-07 |
-| v1 | | | | | | | |
+| v0 | 10.621 | 3.071 | 10.577 | 24.275 | 176.9 | - | 1.2e-07 |
+| v1 | 1.352 | 0.518 | 1.428 | 3.306 | 1299.4 | 7.34x | 9.0e-08 |
 
 ## Notes per optimization
 
@@ -135,8 +136,8 @@ The softmax kernel has a second problem: only Nq threads in total. For
 N = 4096 that is 128 warps for the whole GPU, and in the decode shape
 (Nq = 1) a single thread walks the whole row of length Nk.
 
-Measured on Euler (N = 4096, d = 64): 24.17 ms in total, of which QK^T
-10.55 ms (44 %), softmax 3.06 ms (13 %) and PV 10.55 ms (44 %). The two
+Measured on Euler (N = 4096, d = 64): 24.27 ms in total, of which QK^T
+10.62 ms (44 %), softmax 3.07 ms (13 %) and PV 10.58 ms (44 %). The two
 matrix products take almost 90 % of the time, so they are where the later
 optimizations (tiling, float4, register blocking) matter most.
 
@@ -175,3 +176,60 @@ Nq blocks of 256 threads instead of Nq threads, and the decode shape
 (Nq = 1) uses a whole block instead of one thread. The max and the sum of a
 row are combined with a shared-memory tree reduction (`block_reduce`); a
 warp-shuffle reduction is part B's topic.
+
+Measured on Euler (N = 4096, d = 64), v0 -> v1:
+
+| Stage | v0 (ms) | v1 (ms) | Speedup |
+|---|---|---|---|
+| qk (incl. transpose) | 10.621 | 1.352 | 7.9x |
+| softmax | 3.071 | 0.518 | 5.9x |
+| pv | 10.577 | 1.428 | 7.4x |
+| total | 24.275 | 3.306 | 7.3x |
+
+The gain is close to the 8x predicted by the sector count. The softmax now
+moves S at 259 GB/s counting one read and one write, close to the 280 GB/s
+peak bandwidth on the card's spec sheet (the kernel passes over a row three
+times, but only the first pass comes from DRAM, see below). So after v1 the
+softmax stage is memory-bound and the remaining time is in the two matrix
+products (84 % of the total).
+
+Profiler evidence (`sbatch ncu_euler.sh v0 v1`, N = 2048, d = 64, first
+call of each kernel). Sectors per request = sectors / requests of the
+global loads (ld) and stores (st):
+
+| Kernel | ld sectors/request | st sectors/request | ld bytes used per sector | ld sectors in total |
+|---|---|---|---|---|
+| qk | 16.5 -> 2.5 | 32 -> 4 | 12.5 % -> 82.5 % | 276.8 M -> 41.9 M |
+| softmax | 32 -> 4 | 32 -> 4 | 12.5 % -> 100 % | 12.6 M -> 1.6 M |
+| pv | 16.5 -> 2.5 | 32 -> 4 | 12.5 % -> 82.5 % | 276.8 M -> 41.9 M |
+
+These match the tables above exactly. In qk and pv every loop step has two
+loads, one per operand: in v0 that is 32 + 1 (broadcast) sectors, so
+(32 + 1) / 2 = 16.5 per request; in v1 it is 1 (broadcast) + 4, so 2.5. The
+broadcast load uses only 4 of the 32 bytes of its sector, which is why v1
+reaches 82.5 % and not 100 % ((4 + 4 x 32) / (5 x 32) = 82.5 %).
+
+What the DRAM counters add:
+
+- qk reads only 1.05 MB from DRAM in both v0 and v1, i.e. Q and K once.
+  At this size the data stays in the L2 cache, so the 8x waste of v0 was
+  traffic between L1 and L2, not DRAM traffic. Coalescing fixes it anyway
+  because every sector still costs a transaction.
+- softmax reads 16.78 MB from DRAM, which is exactly S (2048 x 2048 x 4 B)
+  once, although it passes over each row three times: the second and
+  third pass hit in cache.
+- The transpose in v1 takes 8.9 us next to 1.00 ms for the qk kernel
+  (under 1 %); its loads are 12.5 % efficient, as expected, but it does
+  not matter.
+- softmax_v1 has a few shared-memory bank conflicts (4,046 in total, about
+  2 per block), which is negligible.
+
+Note: ncu fixes the clocks and flushes the caches before each kernel, so its
+`gpu__time_duration` is longer than the event timings; it is only used to
+compare kernels with each other, not as the reported time.
+
+The same run also gives the event timings at N = 2048, where S is only
+16.8 MB: there the v1 softmax reaches 683 GB/s, above the DRAM peak, because
+S written by qk is still in L2. At N = 4096 (S = 64 MB) it falls to
+259 GB/s, close to DRAM peak. The size of the problem relative to the L2
+cache therefore changes which limit a kernel hits.
