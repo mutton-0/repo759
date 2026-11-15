@@ -17,6 +17,8 @@
 // a line is added here together with each new version:
 //   v0  naive, three kernels, threadIdx.x walks the row dimension
 //   v1  coalesced: threadIdx.x walks the contiguous dimension
+//   v2a 32 x 32 shared-memory tiles in qk and pv, no padding
+//   v2b same tiles, qk tile rows padded to 33 floats (no bank conflicts)
 
 void attention_memopt_v0(const float* Q, const float* K, const float* V,
                          float* O, int N, int d);
@@ -29,5 +31,16 @@ void attention_memopt_v1(const float* Q, const float* K, const float* V,
 void attention_memopt_v1_decode(const float* Q, const float* K,
                                 const float* V, float* O, int Nq, int Nk,
                                 int d);
+
+void attention_memopt_v2a(const float* Q, const float* K, const float* V,
+                          float* O, int N, int d);
+void attention_memopt_v2a_decode(const float* Q, const float* K,
+                                 const float* V, float* O, int Nq, int Nk,
+                                 int d);
+void attention_memopt_v2b(const float* Q, const float* K, const float* V,
+                          float* O, int N, int d);
+void attention_memopt_v2b_decode(const float* Q, const float* K,
+                                 const float* V, float* O, int Nq, int Nk,
+                                 int d);
 
 #endif

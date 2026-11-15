@@ -23,9 +23,13 @@ struct Version {
 // One line per version, added together with its .cu file.
 extern const AttentionStages kV0;
 extern const AttentionStages kV1;
+extern const AttentionStages kV2a;
+extern const AttentionStages kV2b;
 static const std::vector<Version> kVersions = {
     {"v0", &kV0},
     {"v1", &kV1},
+    {"v2a", &kV2a},
+    {"v2b", &kV2b},
 };
 
 static const int kWarmup = 3;

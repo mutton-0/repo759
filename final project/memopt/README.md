@@ -14,7 +14,7 @@ compared with the one before it. Each version is its own `.cu` file.
 |---|---|---|---|
 | v0 | `v0_naive.cu` | naive: one thread per output, thread index walks the row dimension | done |
 | v1 | `v1_coalesced.cu` | coalescing: thread index walks the contiguous dimension | done |
-| v2a / v2b | `v2_smem_pad.cu` | shared-memory tiles without / with padding (bank conflicts) | todo |
+| v2a / v2b | `v2_smem_pad.cu` | shared-memory tiles without / with padding (bank conflicts) | done |
 | v3 | `v3_float4.cu` | `float4` vectorized loads | todo |
 | v4 | `v4_regblock.cu` | register blocking (each thread computes a small tile) | todo |
 | v5 | `v5_unroll.cu` | loop unrolling with compile-time sizes | todo |
@@ -57,7 +57,7 @@ make ARCH=sm_120     # another GPU: set its compute capability
 ```
 
 On Euler (compute nodes only), from this folder: `sbatch run_euler.sh`.
-Profiler counters for some versions: `sbatch ncu_euler.sh v0 v1`.
+Profiler counters for some versions: `sbatch ncu_euler.sh v1 v2a v2b`.
 
 Output of one run:
 
@@ -95,6 +95,8 @@ compared with each other come from the same Slurm job.
 |---|---|---|---|---|---|---|---|
 | v0 | 10.621 | 3.071 | 10.577 | 24.275 | 176.9 | - | 1.2e-07 |
 | v1 | 1.352 | 0.518 | 1.428 | 3.306 | 1299.4 | 7.34x | 9.0e-08 |
+| v2a | | | | | | | |
+| v2b | | | | | | | |
 
 ## Notes per optimization
 
@@ -233,3 +235,55 @@ The same run also gives the event timings at N = 2048, where S is only
 S written by qk is still in L2. At N = 4096 (S = 64 MB) it falls to
 259 GB/s, close to DRAM peak. The size of the problem relative to the L2
 cache therefore changes which limit a kernel hits.
+
+### v2: shared-memory tiles and padding (`v2_smem_pad.cu`)
+
+**Tiling (v1 -> v2a, part B's topic, listed for completeness).** qk and pv
+are matrix products. A block of 32 x 32 threads computes a 32 x 32 tile of
+the output; in steps of 32 along the inner dimension it loads one 32 x 32
+tile of each operand into shared memory (coalesced, one float per thread)
+and then every thread reads 32 values of each tile from shared memory. Each
+float loaded from global memory is now used by 32 threads. qk loads both Q
+and K tiles along k, so the transpose kernel of v1 is no longer needed.
+softmax is unchanged (v1's kernel).
+
+**Bank conflicts (v2a).** Shared memory has 32 banks, 4 bytes wide; the
+float at index `a` sits in bank `a % 32`. A warp's shared load takes one
+pass if the 32 threads hit 32 different banks (or the same address, a
+broadcast); threads that hit different addresses in the same bank are
+served one after the other. In qk a warp has fixed `ty` and `tx` = 0..31:
+
+| Read in qk | Index in v2a (row = 32 floats) | Bank | Passes |
+|---|---|---|---|
+| `Qs[ty][kk]` | `ty*32 + kk` | same address for all | 1 (broadcast) |
+| `Ks[tx][kk]` | `tx*32 + kk` | `kk` for all 32 threads | **32** |
+
+So the inner loop of qk in v2a is serialized 32 ways. The tile of K has to
+be read along a column because S = Q K^T needs row j of K for column j of S.
+
+**Padding (v2a -> v2b, part C's gain).** Declaring the qk tiles as
+`[32][33]` moves every row one bank further:
+
+| Read in qk | Index in v2b (row = 33 floats) | Bank | Passes |
+|---|---|---|---|
+| `Ks[tx][kk]` | `tx*33 + kk` | `(tx + kk) % 32`, all different | 1 |
+
+The cost is 32 unused floats per tile (4 % more shared memory).
+
+**Why pv is not padded.** In pv a warp reads `Ps[ty][jj]` (broadcast) and
+`Vs[jj][tx]` (32 consecutive floats, 32 banks), which is already conflict
+free. We first padded both kernels and pv got slower. The SASS
+(`cuobjdump -sass`, sm_89) shows why: with 32-float rows, `Ps[ty][jj..jj+3]`
+is 16-byte aligned and the compiler reads it with one 128-bit `LDS.128`;
+with 33-float rows the alignment is lost and every read is a scalar `LDS`.
+Shared-load instructions per 32-wide tile:
+
+| Kernel | rows of 32 floats | rows of 33 floats |
+|---|---|---|
+| qk | 16 `LDS.128` (Ks with 32-way conflicts) | 64 `LDS` (no conflicts) |
+| pv | 8 `LDS.128` + 32 `LDS` = 40 | 64 `LDS` |
+
+For qk, four times more load instructions is a good trade for removing the
+32-way conflict; for pv it is pure cost. So v2b pads only the qk tiles, and
+pv is the same in v2a and v2b. Padding is a fix for a specific access
+pattern, not a free improvement.
