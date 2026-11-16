@@ -88,15 +88,16 @@ csv,v1,4096,4096,64,...
 
 ## Results (Euler, RTX 4000 SFF Ada, cc 8.9)
 
-N = 4096, d = 64. Each row is "before -> after" for one optimization. Rows
-compared with each other come from the same Slurm job.
+N = 4096, d = 64. Each row is "before -> after" for one optimization; the
+speedup is against the row above. All rows come from the same Slurm job
+(job 121247), so they can be compared directly.
 
 | Version | qk (ms) | softmax (ms) | pv (ms) | total (ms) | GFLOP/s | speedup vs previous | max err |
 |---|---|---|---|---|---|---|---|
-| v0 | 10.621 | 3.071 | 10.577 | 24.275 | 176.9 | - | 1.2e-07 |
-| v1 | 1.352 | 0.518 | 1.428 | 3.306 | 1299.4 | 7.34x | 9.0e-08 |
-| v2a | | | | | | | |
-| v2b | | | | | | | |
+| v0 | 10.685 | 3.104 | 10.587 | 24.376 | 176.2 | - | 1.2e-07 |
+| v1 | 1.364 | 0.520 | 1.446 | 3.338 | 1286.6 | 7.30x | 9.0e-08 |
+| v2a | 2.842 | 0.523 | 1.238 | 4.606 | 932.5 | 0.72x | 9.0e-08 |
+| v2b | 1.507 | 0.520 | 1.240 | 3.270 | 1313.6 | 1.41x | 9.0e-08 |
 
 ## Notes per optimization
 
@@ -179,7 +180,7 @@ Nq blocks of 256 threads instead of Nq threads, and the decode shape
 row are combined with a shared-memory tree reduction (`block_reduce`); a
 warp-shuffle reduction is part B's topic.
 
-Measured on Euler (N = 4096, d = 64), v0 -> v1:
+Measured on Euler (N = 4096, d = 64, job 118707), v0 -> v1:
 
 | Stage | v0 (ms) | v1 (ms) | Speedup |
 |---|---|---|---|
@@ -287,3 +288,59 @@ For qk, four times more load instructions is a good trade for removing the
 32-way conflict; for pv it is pure cost. So v2b pads only the qk tiles, and
 pv is the same in v2a and v2b. Padding is a fix for a specific access
 pattern, not a free improvement.
+
+Measured on Euler (N = 4096, d = 64, job 121247):
+
+| Stage | v1 (ms) | v2a (ms) | v2b (ms) | v2a -> v2b |
+|---|---|---|---|---|
+| qk | 1.364 | 2.842 | 1.507 | 1.89x |
+| softmax | 0.520 | 0.523 | 0.520 | - |
+| pv | 1.446 | 1.238 | 1.240 | same kernel |
+| total | 3.338 | 4.606 | 3.270 | 1.41x |
+
+- Padding (part C's gain) makes qk 1.89x faster and the whole attention
+  1.41x faster.
+- Without padding, tiling makes qk 2.1x **slower** than v1: the 32-way
+  conflicts cost more than the reuse gains.
+- Even with padding, the tiled qk (1.507 ms) is not faster than the simple
+  coalesced qk of v1 (1.364 ms); the tiled pv is 1.17x faster than v1's.
+
+Profiler evidence (`sbatch ncu_euler.sh v1 v2a v2b`, job 121248, N = 2048,
+d = 64). A *wavefront* is one pass of the shared-memory pipeline; a
+conflict-free 32-bit warp load needs exactly one.
+
+| qk kernel | shared-load instructions | wavefronts | wavefronts / instruction | bank conflicts | ncu time |
+|---|---|---|---|---|---|
+| v2a (rows of 32) | 4.19 M (`LDS.128`) | 71.3 M | 17.0 | 58.7 M | 2.31 ms |
+| v2b (rows of 33) | 16.78 M (`LDS`) | 16.78 M | 1.0 | 0 | 1.21 ms |
+
+The counts match the code exactly. v2a: 64 x 64 blocks x 32 warps x 2
+k-tiles x 16 `LDS.128` = 4.19 M instructions; half of them read `Ks` with a
+32-way conflict (32 wavefronts each) and half read `Qs` as a broadcast (2
+wavefronts each), (32 + 2) / 2 = 17. v2b issues 4x more instructions
+(scalar instead of 128-bit), but each takes one wavefront, so the total
+work of the shared-memory pipeline drops 4.25x (71.3 M -> 16.8 M
+wavefronts) and qk gets 1.9x faster.
+
+**Why the tiled qk is not faster than v1.** Tiling did what it should for
+global memory: global load requests of qk drop 32x (16.78 M in v1 ->
+0.52 M in v2). But the inner loop still needs two loads per multiply-add,
+now from shared memory instead of L1:
+
+| Kernel | load instructions in the inner loop | where they are served |
+|---|---|---|
+| qk v1 | 16.78 M global loads | mostly L1 hits |
+| qk v2b | 16.78 M shared loads | shared memory |
+| pv v1 | 16.78 M global loads | mostly L1 hits |
+| pv v2 | 10.49 M shared loads (8 `LDS.128` + 32 `LDS` per tile) | shared memory |
+
+On Ada, L1 and shared memory are the same on-chip memory, so the same
+number of load instructions takes about the same time, and v2 adds a
+`__syncthreads()` pair per tile. qk v2b therefore ends up level with v1
+(slightly slower), while pv v2 needs 1.6x fewer load instructions (thanks
+to `LDS.128`) and is 1.17x faster. A padded pv would have needed 16.78 M
+scalar loads, the same as v1, which is why padding it did not pay off.
+
+The quantity to reduce from here on is **load instructions per
+multiply-add**: wider loads (`float4`, v3) and reusing each loaded value
+for several outputs held in registers (register blocking, v4).
