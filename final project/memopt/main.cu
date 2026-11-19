@@ -25,11 +25,13 @@ extern const AttentionStages kV0;
 extern const AttentionStages kV1;
 extern const AttentionStages kV2a;
 extern const AttentionStages kV2b;
+extern const AttentionStages kV3;
 static const std::vector<Version> kVersions = {
     {"v0", &kV0},
     {"v1", &kV1},
     {"v2a", &kV2a},
     {"v2b", &kV2b},
+    {"v3", &kV3},
 };
 
 static const int kWarmup = 3;

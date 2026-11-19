@@ -8,6 +8,39 @@ This folder starts from a naive three-kernel CUDA version (QK^T, softmax, PV)
 and adds one memory-access optimization per version, so every version can be
 compared with the one before it. Each version is its own `.cu` file.
 
+## Summary (updated with every version)
+
+Euler, RTX 4000 SFF Ada, N = 4096, d = 64, all versions pass (max error
+about 1e-7, limit 1e-4). Details and profiler evidence are in the notes
+per version below.
+
+| Version | Optimization | Total (ms) | vs previous | vs v0 |
+|---|---|---|---|---|
+| v0 | naive baseline | 24.376 | - | 1.0x |
+| v1 | coalesced access | 3.338 | 7.30x | 7.3x |
+| v2a | shared-memory tiles (no padding) | 4.606 | 0.72x | 5.3x |
+| v2b | + padding of the qk tiles | 3.270 | 1.41x | 7.5x |
+| v3 | float4 (128-bit) loads | pending | | |
+
+Main findings so far:
+
+1. **Coalescing (v0 -> v1, 7.3x).** Mapping `threadIdx.x` to the contiguous
+   dimension cuts global sectors per request from 32 to 4; the measured
+   gain (7.3x) is close to the predicted 8x.
+2. **Bank conflicts (v2a -> v2b, 1.41x).** Reading a K tile by column
+   gives a 32-way conflict (17 wavefronts per shared load instead of 1).
+   One float of padding per row removes all conflicts; qk gets 1.89x
+   faster.
+3. **Padding is not free.** Padding a tile that has no conflict (pv) breaks
+   16-byte alignment, the compiler loses `LDS.128`, and pv gets slower.
+4. **Tiling alone did not beat v1 for qk.** L1 and shared memory are the
+   same hardware on Ada; v1 and v2b both issue 16.78 M load instructions
+   in the inner loop. The real cost is load instructions per
+   multiply-add, which v3 (float4) and v4 (register blocking) reduce.
+5. **softmax is memory-bound after v1** (259 GB/s of the 280 GB/s peak at
+   N = 4096); whether S fits in L2 (16.8 MB at N = 2048, 64 MB at
+   N = 4096) decides which limit it hits.
+
 ## Plan
 
 | Version | File | Change (on top of the previous version) | Status |
@@ -15,7 +48,7 @@ compared with the one before it. Each version is its own `.cu` file.
 | v0 | `v0_naive.cu` | naive: one thread per output, thread index walks the row dimension | done |
 | v1 | `v1_coalesced.cu` | coalescing: thread index walks the contiguous dimension | done |
 | v2a / v2b | `v2_smem_pad.cu` | shared-memory tiles without / with padding (bank conflicts) | done |
-| v3 | `v3_float4.cu` | `float4` vectorized loads | todo |
+| v3 | `v3_float4.cu` | `float4` vectorized loads | done |
 | v4 | `v4_regblock.cu` | register blocking (each thread computes a small tile) | todo |
 | v5 | `v5_unroll.cu` | loop unrolling with compile-time sizes | todo |
 | v6 | `v6_double_buffer.cu` | double buffering of the shared-memory tiles | todo |
@@ -57,7 +90,7 @@ make ARCH=sm_120     # another GPU: set its compute capability
 ```
 
 On Euler (compute nodes only), from this folder: `sbatch run_euler.sh`.
-Profiler counters for some versions: `sbatch ncu_euler.sh v1 v2a v2b`.
+Profiler counters for some versions, e.g. `sbatch ncu_euler.sh v2b v3`.
 
 Output of one run:
 
@@ -98,6 +131,7 @@ speedup is against the row above. All rows come from the same Slurm job
 | v1 | 1.364 | 0.520 | 1.446 | 3.338 | 1286.6 | 7.30x | 9.0e-08 |
 | v2a | 2.842 | 0.523 | 1.238 | 4.606 | 932.5 | 0.72x | 9.0e-08 |
 | v2b | 1.507 | 0.520 | 1.240 | 3.270 | 1313.6 | 1.41x | 9.0e-08 |
+| v3 | | | | | | | |
 
 ## Notes per optimization
 
@@ -344,3 +378,39 @@ scalar loads, the same as v1, which is why padding it did not pay off.
 The quantity to reduce from here on is **load instructions per
 multiply-add**: wider loads (`float4`, v3) and reusing each loaded value
 for several outputs held in registers (register blocking, v4).
+
+### v3: float4 loads (`v3_float4.cu`)
+
+v2 showed that the inner loops are limited by the number of load
+instructions, two per multiply-add. A `float4` load moves 16 bytes in one
+instruction, so v3 uses it wherever a thread needs 4 consecutive floats.
+
+| Where | v2b | v3 |
+|---|---|---|
+| qk inner loop | `Qs[ty][kk]`, `Ks[tx][kk]`: 64 scalar `LDS` per tile | `Qs[ty][kk..kk+3]`, `Ks[tx][kk..kk+3]`: 16 `LDS.128` per tile |
+| qk / pv tile loads (global -> shared) | 1 float per thread, 1024 threads | 1 float4 per thread, first 256 threads (8 warps) |
+| pv inner loop | 8 `LDS.128` + 32 `LDS` (compiler already vectorized `Ps`) | same |
+| softmax | scalar loads/stores | float4 loads/stores |
+
+**Padding for float4.** A float4 must be 16-byte aligned, so a 33-float
+row (v2b) cannot be used. Rows of 36 floats are aligned (144 bytes), and
+they are also conflict-free for 128-bit loads: the hardware serves a
+128-bit warp load 8 threads at a time; thread `tx` reads banks
+`(4*tx + kk) % 32 ... +3`, so the 8 threads of one pass cover banks 0-31
+exactly once.
+
+| Rows of | `Ks[tx][kk]` read | Instructions per tile | Conflict |
+|---|---|---|---|
+| 32 floats (v2a) | `LDS.128` | 16 | 32-way |
+| 33 floats (v2b) | scalar `LDS` | 64 | none |
+| 36 floats (v3) | `LDS.128` | 16 | none |
+
+So v3 combines the instruction count of v2a with the conflict-free access
+of v2b. pv's inner loop is unchanged (each thread needs a different column
+of `Vs`, which is not 4 consecutive floats for one thread; that needs
+register blocking, v4), so only its tile loads change.
+
+**Limits.** float4 needs 16-byte aligned addresses: `d % 4 == 0` (rows of
+Q, K, V) and `Nk % 4 == 0` (rows of S). For other sizes the affected stages
+fall back to the v2b / v1 kernels; all sizes used in this project satisfy
+both.

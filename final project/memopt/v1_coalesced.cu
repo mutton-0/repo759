@@ -32,23 +32,6 @@ __global__ void qk_v1(const float* Q, const float* Kt, float* S, int Nq,
   S[(size_t)i * Nk + j] = sum * scale;
 }
 
-// tree reduction over the block, op = max or sum; all threads get the result
-template <bool kIsMax>
-__device__ float block_reduce(float v, float* buf) {
-  const int t = threadIdx.x;
-  buf[t] = v;
-  __syncthreads();
-  for (int s = blockDim.x / 2; s > 0; s /= 2) {
-    if (t < s) {
-      buf[t] = kIsMax ? fmaxf(buf[t], buf[t + s]) : buf[t] + buf[t + s];
-    }
-    __syncthreads();
-  }
-  const float r = buf[0];
-  __syncthreads();  // buf is reused by the next reduction
-  return r;
-}
-
 // one block per row, thread t handles j = t, t + blockDim.x, ...
 __global__ void softmax_v1(float* S, int Nk) {
   __shared__ float buf[kSoftmaxThreads];

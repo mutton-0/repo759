@@ -19,6 +19,9 @@
 //   v1  coalesced: threadIdx.x walks the contiguous dimension
 //   v2a 32 x 32 shared-memory tiles in qk and pv, no padding
 //   v2b same tiles, qk tile rows padded to 33 floats (no bank conflicts)
+//   v3  float4 loads/stores; needs d % 4 == 0 (and Nk % 4 == 0 for softmax
+//       and pv), otherwise those stages fall back to v2b / v1. Pointers
+//       must be 16-byte aligned (cudaMalloc pointers are).
 
 void attention_memopt_v0(const float* Q, const float* K, const float* V,
                          float* O, int N, int d);
@@ -42,5 +45,11 @@ void attention_memopt_v2b(const float* Q, const float* K, const float* V,
 void attention_memopt_v2b_decode(const float* Q, const float* K,
                                  const float* V, float* O, int Nq, int Nk,
                                  int d);
+
+void attention_memopt_v3(const float* Q, const float* K, const float* V,
+                         float* O, int N, int d);
+void attention_memopt_v3_decode(const float* Q, const float* K,
+                                const float* V, float* O, int Nq, int Nk,
+                                int d);
 
 #endif

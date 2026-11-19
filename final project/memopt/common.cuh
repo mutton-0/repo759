@@ -42,6 +42,24 @@ inline float* get_workspace(int slot, size_t count) {
   return buf[slot];
 }
 
+// Tree reduction over the block (blockDim.x a power of two, buf has
+// blockDim.x floats), op = max or sum; all threads get the result.
+template <bool kIsMax>
+__device__ float block_reduce(float v, float* buf) {
+  const int t = threadIdx.x;
+  buf[t] = v;
+  __syncthreads();
+  for (int s = blockDim.x / 2; s > 0; s /= 2) {
+    if (t < s) {
+      buf[t] = kIsMax ? fmaxf(buf[t], buf[t + s]) : buf[t] + buf[t + s];
+    }
+    __syncthreads();
+  }
+  const float r = buf[0];
+  __syncthreads();  // buf is reused by the next reduction
+  return r;
+}
+
 inline void run_attention(const AttentionStages& s, const float* Q,
                           const float* K, const float* V, float* O, int Nq,
                           int Nk, int d) {

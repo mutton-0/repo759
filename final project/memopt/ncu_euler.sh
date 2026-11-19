@@ -17,7 +17,7 @@ module load nvidia/cuda
 cd "$SLURM_SUBMIT_DIR"
 make
 
-metrics=gpu__time_duration.sum
+metrics=gpu__time_duration.sum,smsp__inst_executed.sum
 metrics+=,l1tex__t_requests_pipe_lsu_mem_global_op_ld.sum
 metrics+=,l1tex__t_sectors_pipe_lsu_mem_global_op_ld.sum
 metrics+=,smsp__sass_average_data_bytes_per_sector_mem_global_op_ld.pct
