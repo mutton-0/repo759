@@ -1,0 +1,129 @@
+g++ -O3 -std=c++17 -fopenmp -Wall bench.cpp attention_cpu.cpp -o bench
+## prefill, 8 threads
+version cpu_serial  Nq 256  Nk 256  d 64  threads 1
+time_ms total 2.1219
+gflops 7.9
+max_err 9.978e-08 (16 rows checked)  PASS
+csv,cpu_serial,256,256,64,-,-,-,2.1219,7.9,9.978e-08,PASS
+version cpu_omp  Nq 256  Nk 256  d 64  threads 8
+time_ms total 0.3879
+gflops 43.3
+max_err 9.978e-08 (16 rows checked)  PASS
+csv,cpu_omp,256,256,64,-,-,-,0.3879,43.3,9.978e-08,PASS
+version cpu_serial  Nq 512  Nk 512  d 64  threads 1
+time_ms total 8.6027
+gflops 7.8
+max_err 8.925e-08 (16 rows checked)  PASS
+csv,cpu_serial,512,512,64,-,-,-,8.6027,7.8,8.925e-08,PASS
+version cpu_omp  Nq 512  Nk 512  d 64  threads 8
+time_ms total 1.5787
+gflops 42.5
+max_err 8.925e-08 (16 rows checked)  PASS
+csv,cpu_omp,512,512,64,-,-,-,1.5787,42.5,8.925e-08,PASS
+version cpu_serial  Nq 1024  Nk 1024  d 64  threads 1
+time_ms total 34.1779
+gflops 7.9
+max_err 9.603e-08 (16 rows checked)  PASS
+csv,cpu_serial,1024,1024,64,-,-,-,34.1779,7.9,9.603e-08,PASS
+version cpu_omp  Nq 1024  Nk 1024  d 64  threads 8
+time_ms total 6.2265
+gflops 43.1
+max_err 9.603e-08 (16 rows checked)  PASS
+csv,cpu_omp,1024,1024,64,-,-,-,6.2265,43.1,9.603e-08,PASS
+version cpu_serial  Nq 2048  Nk 2048  d 64  threads 1
+time_ms total 139.3560
+gflops 7.7
+max_err 7.598e-08 (16 rows checked)  PASS
+csv,cpu_serial,2048,2048,64,-,-,-,139.3560,7.7,7.598e-08,PASS
+version cpu_omp  Nq 2048  Nk 2048  d 64  threads 8
+time_ms total 25.4963
+gflops 42.1
+max_err 7.598e-08 (16 rows checked)  PASS
+csv,cpu_omp,2048,2048,64,-,-,-,25.4963,42.1,7.598e-08,PASS
+version cpu_serial  Nq 4096  Nk 4096  d 64  threads 1
+time_ms total 553.6875
+gflops 7.8
+max_err 1.053e-07 (16 rows checked)  PASS
+csv,cpu_serial,4096,4096,64,-,-,-,553.6875,7.8,1.053e-07,PASS
+version cpu_omp  Nq 4096  Nk 4096  d 64  threads 8
+time_ms total 102.1459
+gflops 42.0
+max_err 1.053e-07 (16 rows checked)  PASS
+csv,cpu_omp,4096,4096,64,-,-,-,102.1459,42.0,1.053e-07,PASS
+version cpu_serial  Nq 8192  Nk 8192  d 64  threads 1
+time_ms total 2225.5183
+gflops 7.7
+max_err 8.935e-08 (16 rows checked)  PASS
+csv,cpu_serial,8192,8192,64,-,-,-,2225.5183,7.7,8.935e-08,PASS
+version cpu_omp  Nq 8192  Nk 8192  d 64  threads 8
+time_ms total 409.8006
+gflops 41.9
+max_err 8.935e-08 (16 rows checked)  PASS
+csv,cpu_omp,8192,8192,64,-,-,-,409.8006,41.9,8.935e-08,PASS
+## thread scaling, N = 4096
+version cpu_omp  Nq 4096  Nk 4096  d 64  threads 1
+time_ms total 557.6858
+gflops 7.7
+max_err 1.053e-07 (16 rows checked)  PASS
+csv,cpu_omp,4096,4096,64,-,-,-,557.6858,7.7,1.053e-07,PASS
+version cpu_omp  Nq 4096  Nk 4096  d 64  threads 2
+time_ms total 279.2735
+gflops 15.4
+max_err 1.053e-07 (16 rows checked)  PASS
+csv,cpu_omp,4096,4096,64,-,-,-,279.2735,15.4,1.053e-07,PASS
+version cpu_omp  Nq 4096  Nk 4096  d 64  threads 4
+time_ms total 140.3192
+gflops 30.6
+max_err 1.053e-07 (16 rows checked)  PASS
+csv,cpu_omp,4096,4096,64,-,-,-,140.3192,30.6,1.053e-07,PASS
+version cpu_omp  Nq 4096  Nk 4096  d 64  threads 8
+time_ms total 101.7532
+gflops 42.2
+max_err 1.053e-07 (16 rows checked)  PASS
+csv,cpu_omp,4096,4096,64,-,-,-,101.7532,42.2,1.053e-07,PASS
+## decoding, Nq = 1
+version cpu_serial  Nq 1  Nk 1024  d 64  threads 1
+time_ms total 0.0330
+gflops 7.9
+max_err 4.386e-08 (1 rows checked)  PASS
+csv,cpu_serial,1,1024,64,-,-,-,0.0330,7.9,4.386e-08,PASS
+version cpu_omp  Nq 1  Nk 1024  d 64  threads 8
+time_ms total 0.0387
+gflops 6.8
+max_err 4.386e-08 (1 rows checked)  PASS
+csv,cpu_omp,1,1024,64,-,-,-,0.0387,6.8,4.386e-08,PASS
+version cpu_serial  Nq 1  Nk 4096  d 64  threads 1
+time_ms total 0.1326
+gflops 7.9
+max_err 4.693e-08 (1 rows checked)  PASS
+csv,cpu_serial,1,4096,64,-,-,-,0.1326,7.9,4.693e-08,PASS
+version cpu_omp  Nq 1  Nk 4096  d 64  threads 8
+time_ms total 0.1508
+gflops 7.0
+max_err 4.693e-08 (1 rows checked)  PASS
+csv,cpu_omp,1,4096,64,-,-,-,0.1508,7.0,4.693e-08,PASS
+version cpu_serial  Nq 1  Nk 16384  d 64  threads 1
+time_ms total 0.5326
+gflops 7.9
+max_err 4.544e-08 (1 rows checked)  PASS
+csv,cpu_serial,1,16384,64,-,-,-,0.5326,7.9,4.544e-08,PASS
+version cpu_omp  Nq 1  Nk 16384  d 64  threads 8
+time_ms total 0.6032
+gflops 7.0
+max_err 4.544e-08 (1 rows checked)  PASS
+csv,cpu_omp,1,16384,64,-,-,-,0.6032,7.0,4.544e-08,PASS
+version cpu_serial  Nq 1  Nk 65536  d 64  threads 1
+time_ms total 2.1958
+gflops 7.6
+max_err 5.269e-08 (1 rows checked)  PASS
+csv,cpu_serial,1,65536,64,-,-,-,2.1958,7.6,5.269e-08,PASS
+version cpu_omp  Nq 1  Nk 65536  d 64  threads 8
+time_ms total 2.5447
+gflops 6.6
+max_err 5.269e-08 (1 rows checked)  PASS
+csv,cpu_omp,1,65536,64,-,-,-,2.5447,6.6,5.269e-08,PASS
+version cpu_serial  Nq 1024  Nk 1024  d 64  threads 1
+time_ms total 34.7480
+gflops 7.7
+max_err 9.603e-08 (16 rows checked)  PASS
+csv,cpu_serial,1024,1024,64,-,-,-,34.7480,7.7,9.603e-08,PASS

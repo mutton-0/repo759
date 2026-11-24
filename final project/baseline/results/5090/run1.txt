@@ -1,0 +1,548 @@
+make: 'bench' is up to date.
+make: 'memopt' is up to date.
+## machine
+NVIDIA GeForce RTX 5090 Laptop GPU, 12.0
+cpu threads 24
+## prefill
+version cpu_omp  Nq 256  Nk 256  d 64  threads 24
+time_ms total 1.0052
+gflops 16.7
+max_err 1.252e-07 (16 rows checked)  PASS
+csv,cpu_omp,256,256,64,-,-,-,1.0052,16.7,1.252e-07,PASS
+version cpu_serial  Nq 256  Nk 256  d 64  threads 1
+time_ms total 1.3776
+gflops 12.2
+max_err 1.252e-07 (16 rows checked)  PASS
+csv,cpu_serial,256,256,64,-,-,-,1.3776,12.2,1.252e-07,PASS
+version torch_naive  Nq 256  Nk 256  d 64  threads 24
+time_ms total 23.9936
+max_err vs cpp 1.639e-07  PASS
+csv,torch_naive,256,256,64,-,-,-,23.9936,0.7,1.639e-07,PASS
+version torch_sdpa  Nq 256  Nk 256  d 64  threads 24
+time_ms total 0.1148
+max_err vs cpp 1.490e-07  PASS
+csv,torch_sdpa,256,256,64,-,-,-,0.1148,146.2,1.490e-07,PASS
+version torch_cuda_naive  Nq 256  Nk 256  d 64  threads 0
+time_ms total 0.0299
+max_err vs cpp 1.341e-07  PASS
+csv,torch_cuda_naive,256,256,64,-,-,-,0.0299,561.5,1.341e-07,PASS
+version torch_cuda_sdpa  Nq 256  Nk 256  d 64  threads 0
+time_ms total 0.0394
+max_err vs cpp 1.639e-07  PASS
+csv,torch_cuda_sdpa,256,256,64,-,-,-,0.0394,425.7,1.639e-07,PASS
+version v0  Nq 256  Nk 256  d 64
+time_ms  qk 0.0277  softmax 0.0860  pv 0.0307  total 0.1446
+gflops 116.0  softmax_gbs 6.1
+max_err 1.401e-07 (256 rows checked)  PASS
+csv,v0,256,256,64,0.0277,0.0860,0.0307,0.1446,116.0,1.401e-07,PASS
+version v1  Nq 256  Nk 256  d 64
+time_ms  qk 0.0074  softmax 0.0061  pv 0.0183  total 0.0320
+gflops 524.3  softmax_gbs 86.2
+max_err 8.561e-08 (256 rows checked)  PASS
+csv,v1,256,256,64,0.0074,0.0061,0.0183,0.0320,524.3,8.561e-08,PASS
+version v2a  Nq 256  Nk 256  d 64
+time_ms  qk 0.0097  softmax 0.0061  pv 0.0122  total 0.0281
+gflops 597.1  softmax_gbs 86.2
+max_err 8.561e-08 (256 rows checked)  PASS
+csv,v2a,256,256,64,0.0097,0.0061,0.0122,0.0281,597.1,8.561e-08,PASS
+version v2b  Nq 256  Nk 256  d 64
+time_ms  qk 0.0074  softmax 0.0061  pv 0.0123  total 0.0259
+gflops 647.3  softmax_gbs 85.8
+max_err 8.561e-08 (256 rows checked)  PASS
+csv,v2b,256,256,64,0.0074,0.0061,0.0123,0.0259,647.3,8.561e-08,PASS
+version v3  Nq 256  Nk 256  d 64
+time_ms  qk 0.0052  softmax 0.0060  pv 0.0123  total 0.0241
+gflops 695.3  softmax_gbs 86.7
+max_err 8.239e-08 (256 rows checked)  PASS
+csv,v3,256,256,64,0.0052,0.0060,0.0123,0.0241,695.3,8.239e-08,PASS
+version cpu_omp  Nq 512  Nk 512  d 64  threads 24
+time_ms total 0.9443
+gflops 71.1
+max_err 8.082e-08 (16 rows checked)  PASS
+csv,cpu_omp,512,512,64,-,-,-,0.9443,71.1,8.082e-08,PASS
+version cpu_serial  Nq 512  Nk 512  d 64  threads 1
+time_ms total 4.9098
+gflops 13.7
+max_err 8.082e-08 (16 rows checked)  PASS
+csv,cpu_serial,512,512,64,-,-,-,4.9098,13.7,8.082e-08,PASS
+version torch_naive  Nq 512  Nk 512  d 64  threads 24
+time_ms total 0.3908
+max_err vs cpp 1.416e-07  PASS
+csv,torch_naive,512,512,64,-,-,-,0.3908,171.7,1.416e-07,PASS
+version torch_sdpa  Nq 512  Nk 512  d 64  threads 24
+time_ms total 0.2115
+max_err vs cpp 1.416e-07  PASS
+csv,torch_sdpa,512,512,64,-,-,-,0.2115,317.3,1.416e-07,PASS
+version torch_cuda_naive  Nq 512  Nk 512  d 64  threads 0
+time_ms total 0.0402
+max_err vs cpp 1.639e-07  PASS
+csv,torch_cuda_naive,512,512,64,-,-,-,0.0402,1669.5,1.639e-07,PASS
+version torch_cuda_sdpa  Nq 512  Nk 512  d 64  threads 0
+time_ms total 0.0648
+max_err vs cpp 1.639e-07  PASS
+csv,torch_cuda_sdpa,512,512,64,-,-,-,0.0648,1035.1,1.639e-07,PASS
+version v0  Nq 512  Nk 512  d 64
+time_ms  qk 0.0832  softmax 0.1679  pv 0.1004  total 0.3516
+gflops 190.8  softmax_gbs 12.5
+max_err 1.083e-07 (256 rows checked)  PASS
+csv,v0,512,512,64,0.0832,0.1679,0.1004,0.3516,190.8,1.083e-07,PASS
+version v1  Nq 512  Nk 512  d 64
+time_ms  qk 0.0150  softmax 0.0061  pv 0.0327  total 0.0539
+gflops 1246.1  softmax_gbs 344.9
+max_err 1.127e-07 (256 rows checked)  PASS
+csv,v1,512,512,64,0.0150,0.0061,0.0327,0.0539,1246.1,1.127e-07,PASS
+version v2a  Nq 512  Nk 512  d 64
+time_ms  qk 0.0305  softmax 0.0061  pv 0.0225  total 0.0592
+gflops 1134.2  softmax_gbs 343.1
+max_err 1.127e-07 (256 rows checked)  PASS
+csv,v2a,512,512,64,0.0305,0.0061,0.0225,0.0592,1134.2,1.127e-07,PASS
+version v2b  Nq 512  Nk 512  d 64
+time_ms  qk 0.0175  softmax 0.0060  pv 0.0225  total 0.0461
+gflops 1456.4  softmax_gbs 352.3
+max_err 1.127e-07 (256 rows checked)  PASS
+csv,v2b,512,512,64,0.0175,0.0060,0.0225,0.0461,1456.4,1.127e-07,PASS
+version v3  Nq 512  Nk 512  d 64
+time_ms  qk 0.0111  softmax 0.0061  pv 0.0225  total 0.0398
+gflops 1685.8  softmax_gbs 343.1
+max_err 1.127e-07 (256 rows checked)  PASS
+csv,v3,512,512,64,0.0111,0.0061,0.0225,0.0398,1685.8,1.127e-07,PASS
+version cpu_omp  Nq 1024  Nk 1024  d 64  threads 24
+time_ms total 2.3024
+gflops 116.6
+max_err 9.231e-08 (16 rows checked)  PASS
+csv,cpu_omp,1024,1024,64,-,-,-,2.3024,116.6,9.231e-08,PASS
+version cpu_serial  Nq 1024  Nk 1024  d 64  threads 1
+time_ms total 18.3147
+gflops 14.7
+max_err 9.231e-08 (16 rows checked)  PASS
+csv,cpu_serial,1024,1024,64,-,-,-,18.3147,14.7,9.231e-08,PASS
+version torch_naive  Nq 1024  Nk 1024  d 64  threads 24
+time_ms total 1.4049
+max_err vs cpp 1.565e-07  PASS
+csv,torch_naive,1024,1024,64,-,-,-,1.4049,191.1,1.565e-07,PASS
+version torch_sdpa  Nq 1024  Nk 1024  d 64  threads 24
+time_ms total 1.6725
+max_err vs cpp 1.527e-07  PASS
+csv,torch_sdpa,1024,1024,64,-,-,-,1.6725,160.5,1.527e-07,PASS
+version torch_cuda_naive  Nq 1024  Nk 1024  d 64  threads 0
+time_ms total 0.0490
+max_err vs cpp 1.490e-07  PASS
+csv,torch_cuda_naive,1024,1024,64,-,-,-,0.0490,5482.9,1.490e-07,PASS
+version torch_cuda_sdpa  Nq 1024  Nk 1024  d 64  threads 0
+time_ms total 0.1167
+max_err vs cpp 1.602e-07  PASS
+csv,torch_cuda_sdpa,1024,1024,64,-,-,-,0.1167,2299.6,1.602e-07,PASS
+version v0  Nq 1024  Nk 1024  d 64
+time_ms  qk 0.3113  softmax 0.3317  pv 0.3931  total 1.0362
+gflops 259.1  softmax_gbs 25.3
+max_err 1.010e-07 (256 rows checked)  PASS
+csv,v0,1024,1024,64,0.3113,0.3317,0.3931,1.0362,259.1,1.010e-07,PASS
+version v1  Nq 1024  Nk 1024  d 64
+time_ms  qk 0.0442  softmax 0.0102  pv 0.0614  total 0.1158
+gflops 2317.3  softmax_gbs 824.4
+max_err 7.348e-08 (256 rows checked)  PASS
+csv,v1,1024,1024,64,0.0442,0.0102,0.0614,0.1158,2317.3,7.348e-08,PASS
+version v2a  Nq 1024  Nk 1024  d 64
+time_ms  qk 0.0932  softmax 0.0102  pv 0.0410  total 0.1445
+gflops 1857.9  softmax_gbs 821.8
+max_err 7.348e-08 (256 rows checked)  PASS
+csv,v2a,1024,1024,64,0.0932,0.0102,0.0410,0.1445,1857.9,7.348e-08,PASS
+version v2b  Nq 1024  Nk 1024  d 64
+time_ms  qk 0.0513  softmax 0.0102  pv 0.0409  total 0.1025
+gflops 2619.8  softmax_gbs 821.8
+max_err 7.348e-08 (256 rows checked)  PASS
+csv,v2b,1024,1024,64,0.0513,0.0102,0.0409,0.1025,2619.8,7.348e-08,PASS
+version v3  Nq 1024  Nk 1024  d 64
+time_ms  qk 0.0298  softmax 0.0101  pv 0.0409  total 0.0810
+gflops 3314.3  softmax_gbs 832.2
+max_err 7.348e-08 (256 rows checked)  PASS
+csv,v3,1024,1024,64,0.0298,0.0101,0.0409,0.0810,3314.3,7.348e-08,PASS
+version cpu_omp  Nq 2048  Nk 2048  d 64  threads 24
+time_ms total 9.7730
+gflops 109.9
+max_err 7.039e-08 (16 rows checked)  PASS
+csv,cpu_omp,2048,2048,64,-,-,-,9.7730,109.9,7.039e-08,PASS
+version cpu_serial  Nq 2048  Nk 2048  d 64  threads 1
+time_ms total 74.5155
+gflops 14.4
+max_err 7.039e-08 (16 rows checked)  PASS
+csv,cpu_serial,2048,2048,64,-,-,-,74.5155,14.4,7.039e-08,PASS
+version torch_naive  Nq 2048  Nk 2048  d 64  threads 24
+time_ms total 6.2491
+max_err vs cpp 1.229e-07  PASS
+csv,torch_naive,2048,2048,64,-,-,-,6.2491,171.8,1.229e-07,PASS
+version torch_sdpa  Nq 2048  Nk 2048  d 64  threads 24
+time_ms total 3.8783
+max_err vs cpp 1.267e-07  PASS
+csv,torch_sdpa,2048,2048,64,-,-,-,3.8783,276.9,1.267e-07,PASS
+version torch_cuda_naive  Nq 2048  Nk 2048  d 64  threads 0
+time_ms total 0.1430
+max_err vs cpp 1.192e-07  PASS
+csv,torch_cuda_naive,2048,2048,64,-,-,-,0.1430,7506.4,1.192e-07,PASS
+version torch_cuda_sdpa  Nq 2048  Nk 2048  d 64  threads 0
+time_ms total 0.2194
+max_err vs cpp 1.267e-07  PASS
+csv,torch_cuda_sdpa,2048,2048,64,-,-,-,0.2194,4893.8,1.267e-07,PASS
+version v0  Nq 2048  Nk 2048  d 64
+time_ms  qk 1.2332  softmax 0.6595  pv 1.3578  total 3.2518
+gflops 330.2  softmax_gbs 50.9
+max_err 1.183e-07 (256 rows checked)  PASS
+csv,v0,2048,2048,64,1.2332,0.6595,1.3578,3.2518,330.2,1.183e-07,PASS
+version v1  Nq 2048  Nk 2048  d 64
+time_ms  qk 0.1608  softmax 0.0245  pv 0.2845  total 0.4700
+gflops 2284.8  softmax_gbs 1370.7
+max_err 8.595e-08 (256 rows checked)  PASS
+csv,v1,2048,2048,64,0.1608,0.0245,0.2845,0.4700,2284.8,8.595e-08,PASS
+version v2a  Nq 2048  Nk 2048  d 64
+time_ms  qk 0.3515  softmax 0.0245  pv 0.1536  total 0.5296
+gflops 2027.5  softmax_gbs 1367.1
+max_err 8.595e-08 (256 rows checked)  PASS
+csv,v2a,2048,2048,64,0.3515,0.0245,0.1536,0.5296,2027.5,8.595e-08,PASS
+version v2b  Nq 2048  Nk 2048  d 64
+time_ms  qk 0.1899  softmax 0.0244  pv 0.1515  total 0.3659
+gflops 2934.6  softmax_gbs 1374.3
+max_err 8.595e-08 (256 rows checked)  PASS
+csv,v2b,2048,2048,64,0.1899,0.0244,0.1515,0.3659,2934.6,8.595e-08,PASS
+version v3  Nq 2048  Nk 2048  d 64
+time_ms  qk 0.1057  softmax 0.0205  pv 0.1536  total 0.2798
+gflops 3837.4  softmax_gbs 1638.4
+max_err 8.595e-08 (256 rows checked)  PASS
+csv,v3,2048,2048,64,0.1057,0.0205,0.1536,0.2798,3837.4,8.595e-08,PASS
+version cpu_omp  Nq 4096  Nk 4096  d 64  threads 24
+time_ms total 56.0440
+gflops 76.6
+max_err 1.015e-07 (16 rows checked)  PASS
+csv,cpu_omp,4096,4096,64,-,-,-,56.0440,76.6,1.015e-07,PASS
+version cpu_serial  Nq 4096  Nk 4096  d 64  threads 1
+time_ms total 297.8657
+gflops 14.4
+max_err 1.015e-07 (16 rows checked)  PASS
+csv,cpu_serial,4096,4096,64,-,-,-,297.8657,14.4,1.015e-07,PASS
+version torch_naive  Nq 4096  Nk 4096  d 64  threads 24
+time_ms total 30.1698
+max_err vs cpp 1.304e-07  PASS
+csv,torch_naive,4096,4096,64,-,-,-,30.1698,142.4,1.304e-07,PASS
+version torch_sdpa  Nq 4096  Nk 4096  d 64  threads 24
+time_ms total 11.3640
+max_err vs cpp 1.397e-07  PASS
+csv,torch_sdpa,4096,4096,64,-,-,-,11.3640,377.9,1.397e-07,PASS
+version torch_cuda_naive  Nq 4096  Nk 4096  d 64  threads 0
+time_ms total 0.7668
+max_err vs cpp 1.397e-07  PASS
+csv,torch_cuda_naive,4096,4096,64,-,-,-,0.7668,5601.0,1.397e-07,PASS
+version torch_cuda_sdpa  Nq 4096  Nk 4096  d 64  threads 0
+time_ms total 0.4268
+max_err vs cpp 1.434e-07  PASS
+csv,torch_cuda_sdpa,4096,4096,64,-,-,-,0.4268,10064.0,1.434e-07,PASS
+version v0  Nq 4096  Nk 4096  d 64
+time_ms  qk 4.9339  softmax 1.3537  pv 5.0442  total 11.3374
+gflops 378.8  softmax_gbs 99.1
+max_err 1.156e-07 (256 rows checked)  PASS
+csv,v0,4096,4096,64,4.9339,1.3537,5.0442,11.3374,378.8,1.156e-07,PASS
+version v1  Nq 4096  Nk 4096  d 64
+time_ms  qk 0.6500  softmax 0.1044  pv 1.1038  total 1.8646
+gflops 2303.4  softmax_gbs 1285.0
+max_err 9.039e-08 (256 rows checked)  PASS
+csv,v1,4096,4096,64,0.6500,0.1044,1.1038,1.8646,2303.4,9.039e-08,PASS
+version v2a  Nq 4096  Nk 4096  d 64
+time_ms  qk 1.3959  softmax 0.1044  pv 0.6451  total 2.1454
+gflops 2002.0  softmax_gbs 1285.8
+max_err 9.039e-08 (256 rows checked)  PASS
+csv,v2a,4096,4096,64,1.3959,0.1044,0.6451,2.1454,2002.0,9.039e-08,PASS
+version v2b  Nq 4096  Nk 4096  d 64
+time_ms  qk 0.7924  softmax 0.1494  pv 0.6820  total 1.6250
+gflops 2643.1  softmax_gbs 898.1
+max_err 9.039e-08 (256 rows checked)  PASS
+csv,v2b,4096,4096,64,0.7924,0.1494,0.6820,1.6250,2643.1,9.039e-08,PASS
+version v3  Nq 4096  Nk 4096  d 64
+time_ms  qk 0.4260  softmax 0.1536  pv 0.6615  total 1.2449
+gflops 3450.1  softmax_gbs 874.0
+max_err 7.931e-08 (256 rows checked)  PASS
+csv,v3,4096,4096,64,0.4260,0.1536,0.6615,1.2449,3450.1,7.931e-08,PASS
+version cpu_omp  Nq 8192  Nk 8192  d 64  threads 24
+time_ms total 198.6711
+gflops 86.5
+max_err 8.537e-08 (16 rows checked)  PASS
+csv,cpu_omp,8192,8192,64,-,-,-,198.6711,86.5,8.537e-08,PASS
+version cpu_serial  Nq 8192  Nk 8192  d 64  threads 1
+time_ms total 1303.5145
+gflops 13.2
+max_err 8.537e-08 (16 rows checked)  PASS
+csv,cpu_serial,8192,8192,64,-,-,-,1303.5145,13.2,8.537e-08,PASS
+version torch_naive  Nq 8192  Nk 8192  d 64  threads 24
+time_ms total 131.6312
+max_err vs cpp 1.527e-07  PASS
+csv,torch_naive,8192,8192,64,-,-,-,131.6312,130.5,1.527e-07,PASS
+version torch_sdpa  Nq 8192  Nk 8192  d 64  threads 24
+time_ms total 40.0525
+max_err vs cpp 1.490e-07  PASS
+csv,torch_sdpa,8192,8192,64,-,-,-,40.0525,428.9,1.490e-07,PASS
+version torch_cuda_naive  Nq 8192  Nk 8192  d 64  threads 0
+time_ms total 3.2330
+max_err vs cpp 1.639e-07  PASS
+csv,torch_cuda_naive,8192,8192,64,-,-,-,3.2330,5313.9,1.639e-07,PASS
+version torch_cuda_sdpa  Nq 8192  Nk 8192  d 64  threads 0
+time_ms total 1.4162
+max_err vs cpp 1.509e-07  PASS
+csv,torch_cuda_sdpa,8192,8192,64,-,-,-,1.4162,12131.1,1.509e-07,PASS
+version v0  Nq 8192  Nk 8192  d 64
+time_ms  qk 20.4512  softmax 24.5063  pv 20.9817  total 67.8992
+gflops 253.0  softmax_gbs 21.9
+max_err 1.071e-07 (256 rows checked)  PASS
+csv,v0,8192,8192,64,20.4512,24.5063,20.9817,67.8992,253.0,1.071e-07,PASS
+version v1  Nq 8192  Nk 8192  d 64
+time_ms  qk 2.5245  softmax 1.0086  pv 5.1743  total 8.7146
+gflops 1971.4  softmax_gbs 532.3
+max_err 8.675e-08 (256 rows checked)  PASS
+csv,v1,8192,8192,64,2.5245,1.0086,5.1743,8.7146,1971.4,8.675e-08,PASS
+version v2a  Nq 8192  Nk 8192  d 64
+time_ms  qk 5.5394  softmax 1.0066  pv 2.4545  total 9.0026
+gflops 1908.3  softmax_gbs 533.4
+max_err 8.675e-08 (256 rows checked)  PASS
+csv,v2a,8192,8192,64,5.5394,1.0066,2.4545,9.0026,1908.3,8.675e-08,PASS
+version v2b  Nq 8192  Nk 8192  d 64
+time_ms  qk 2.9400  softmax 0.6809  pv 2.3439  total 5.9684
+gflops 2878.5  softmax_gbs 788.4
+max_err 8.675e-08 (256 rows checked)  PASS
+csv,v2b,8192,8192,64,2.9400,0.6809,2.3439,5.9684,2878.5,8.675e-08,PASS
+version v3  Nq 8192  Nk 8192  d 64
+time_ms  qk 1.7994  softmax 1.0057  pv 2.5549  total 5.3639
+gflops 3202.9  softmax_gbs 533.8
+max_err 8.675e-08 (256 rows checked)  PASS
+csv,v3,8192,8192,64,1.7994,1.0057,2.5549,5.3639,3202.9,8.675e-08,PASS
+## decoding
+version cpu_omp  Nq 1  Nk 1024  d 64  threads 24
+time_ms total 0.6174
+gflops 0.4
+max_err 4.759e-08 (1 rows checked)  PASS
+csv,cpu_omp,1,1024,64,-,-,-,0.6174,0.4,4.759e-08,PASS
+version cpu_serial  Nq 1  Nk 1024  d 64  threads 1
+time_ms total 0.0214
+gflops 12.2
+max_err 4.759e-08 (1 rows checked)  PASS
+csv,cpu_serial,1,1024,64,-,-,-,0.0214,12.2,4.759e-08,PASS
+version torch_naive  Nq 1  Nk 1024  d 64  threads 24
+time_ms total 0.0172
+max_err vs cpp 5.588e-08  PASS
+csv,torch_naive,1,1024,64,-,-,-,0.0172,15.2,5.588e-08,PASS
+version torch_sdpa  Nq 1  Nk 1024  d 64  threads 24
+time_ms total 0.0209
+max_err vs cpp 3.725e-08  PASS
+csv,torch_sdpa,1,1024,64,-,-,-,0.0209,12.6,3.725e-08,PASS
+version torch_cuda_naive  Nq 1  Nk 1024  d 64  threads 0
+time_ms total 0.0237
+max_err vs cpp 4.843e-08  PASS
+csv,torch_cuda_naive,1,1024,64,-,-,-,0.0237,11.0,4.843e-08,PASS
+version torch_cuda_sdpa  Nq 1  Nk 1024  d 64  threads 0
+time_ms total 0.1131
+max_err vs cpp 7.078e-08  PASS
+csv,torch_cuda_sdpa,1,1024,64,-,-,-,0.1131,2.3,7.078e-08,PASS
+version v0  Nq 1  Nk 1024  d 64
+time_ms  qk 0.0053  softmax 0.0573  pv 0.0572  total 0.1200
+gflops 2.2  softmax_gbs 0.1
+max_err 4.701e-08 (1 rows checked)  PASS
+csv,v0,1,1024,64,0.0053,0.0573,0.0572,0.1200,2.2,4.701e-08,PASS
+version v1  Nq 1  Nk 1024  d 64
+time_ms  qk 0.0054  softmax 0.0061  pv 0.0552  total 0.0668
+gflops 3.9  softmax_gbs 1.3
+max_err 3.351e-08 (1 rows checked)  PASS
+csv,v1,1,1024,64,0.0054,0.0061,0.0552,0.0668,3.9,3.351e-08,PASS
+version v2a  Nq 1  Nk 1024  d 64
+time_ms  qk 0.0095  softmax 0.0061  pv 0.0389  total 0.0546
+gflops 4.8  softmax_gbs 1.3
+max_err 3.351e-08 (1 rows checked)  PASS
+csv,v2a,1,1024,64,0.0095,0.0061,0.0389,0.0546,4.8,3.351e-08,PASS
+version v2b  Nq 1  Nk 1024  d 64
+time_ms  qk 0.0066  softmax 0.0061  pv 0.0389  total 0.0516
+gflops 5.1  softmax_gbs 1.3
+max_err 3.351e-08 (1 rows checked)  PASS
+csv,v2b,1,1024,64,0.0066,0.0061,0.0389,0.0516,5.1,3.351e-08,PASS
+version v3  Nq 1  Nk 1024  d 64
+time_ms  qk 0.0051  softmax 0.0041  pv 0.0389  total 0.0482
+gflops 5.4  softmax_gbs 2.0
+max_err 3.351e-08 (1 rows checked)  PASS
+csv,v3,1,1024,64,0.0051,0.0041,0.0389,0.0482,5.4,3.351e-08,PASS
+version cpu_omp  Nq 1  Nk 4096  d 64  threads 24
+time_ms total 0.3146
+gflops 3.3
+max_err 3.855e-08 (1 rows checked)  PASS
+csv,cpu_omp,1,4096,64,-,-,-,0.3146,3.3,3.855e-08,PASS
+version cpu_serial  Nq 1  Nk 4096  d 64  threads 1
+time_ms total 0.0857
+gflops 12.2
+max_err 3.855e-08 (1 rows checked)  PASS
+csv,cpu_serial,1,4096,64,-,-,-,0.0857,12.2,3.855e-08,PASS
+version torch_naive  Nq 1  Nk 4096  d 64  threads 24
+time_ms total 5.1189
+max_err vs cpp 3.539e-08  PASS
+csv,torch_naive,1,4096,64,-,-,-,5.1189,0.2,3.539e-08,PASS
+version torch_sdpa  Nq 1  Nk 4096  d 64  threads 24
+time_ms total 0.0605
+max_err vs cpp 2.142e-08  PASS
+csv,torch_sdpa,1,4096,64,-,-,-,0.0605,17.3,2.142e-08,PASS
+version torch_cuda_naive  Nq 1  Nk 4096  d 64  threads 0
+time_ms total 0.0286
+max_err vs cpp 4.191e-08  PASS
+csv,torch_cuda_naive,1,4096,64,-,-,-,0.0286,36.7,4.191e-08,PASS
+version torch_cuda_sdpa  Nq 1  Nk 4096  d 64  threads 0
+time_ms total 0.4133
+max_err vs cpp 2.980e-08  PASS
+csv,torch_cuda_sdpa,1,4096,64,-,-,-,0.4133,2.5,2.980e-08,PASS
+version v0  Nq 1  Nk 4096  d 64
+time_ms  qk 0.0082  softmax 0.2170  pv 0.2149  total 0.4404
+gflops 2.4  softmax_gbs 0.2
+max_err 3.632e-08 (1 rows checked)  PASS
+csv,v0,1,4096,64,0.0082,0.2170,0.2149,0.4404,2.4,3.632e-08,PASS
+version v1  Nq 1  Nk 4096  d 64
+time_ms  qk 0.0068  softmax 0.0080  pv 0.2067  total 0.2219
+gflops 4.7  softmax_gbs 4.1
+max_err 2.530e-08 (1 rows checked)  PASS
+csv,v1,1,4096,64,0.0068,0.0080,0.2067,0.2219,4.7,2.530e-08,PASS
+version v2a  Nq 1  Nk 4096  d 64
+time_ms  qk 0.0175  softmax 0.0081  pv 0.1456  total 0.1713
+gflops 6.1  softmax_gbs 4.0
+max_err 2.530e-08 (1 rows checked)  PASS
+csv,v2a,1,4096,64,0.0175,0.0081,0.1456,0.1713,6.1,2.530e-08,PASS
+version v2b  Nq 1  Nk 4096  d 64
+time_ms  qk 0.0099  softmax 0.0082  pv 0.1454  total 0.1636
+gflops 6.4  softmax_gbs 4.0
+max_err 2.530e-08 (1 rows checked)  PASS
+csv,v2b,1,4096,64,0.0099,0.0082,0.1454,0.1636,6.4,2.530e-08,PASS
+version v3  Nq 1  Nk 4096  d 64
+time_ms  qk 0.0072  softmax 0.0061  pv 0.1474  total 0.1608
+gflops 6.5  softmax_gbs 5.4
+max_err 2.530e-08 (1 rows checked)  PASS
+csv,v3,1,4096,64,0.0072,0.0061,0.1474,0.1608,6.5,2.530e-08,PASS
+version cpu_omp  Nq 1  Nk 16384  d 64  threads 24
+time_ms total 0.9982
+gflops 4.2
+max_err 4.312e-08 (1 rows checked)  PASS
+csv,cpu_omp,1,16384,64,-,-,-,0.9982,4.2,4.312e-08,PASS
+version cpu_serial  Nq 1  Nk 16384  d 64  threads 1
+time_ms total 0.3653
+gflops 11.5
+max_err 4.312e-08 (1 rows checked)  PASS
+csv,cpu_serial,1,16384,64,-,-,-,0.3653,11.5,4.312e-08,PASS
+version torch_naive  Nq 1  Nk 16384  d 64  threads 24
+time_ms total 17.9990
+max_err vs cpp 4.703e-08  PASS
+csv,torch_naive,1,16384,64,-,-,-,17.9990,0.2,4.703e-08,PASS
+version torch_sdpa  Nq 1  Nk 16384  d 64  threads 24
+time_ms total 0.2233
+max_err vs cpp 2.980e-08  PASS
+csv,torch_sdpa,1,16384,64,-,-,-,0.2233,18.8,2.980e-08,PASS
+version torch_cuda_naive  Nq 1  Nk 16384  d 64  threads 0
+time_ms total 0.0259
+max_err vs cpp 4.424e-08  PASS
+csv,torch_cuda_naive,1,16384,64,-,-,-,0.0259,161.6,4.424e-08,PASS
+version torch_cuda_sdpa  Nq 1  Nk 16384  d 64  threads 0
+time_ms total 1.6121
+max_err vs cpp 4.377e-08  PASS
+csv,torch_cuda_sdpa,1,16384,64,-,-,-,1.6121,2.6,4.377e-08,PASS
+version v0  Nq 1  Nk 16384  d 64
+time_ms  qk 0.0221  softmax 0.8541  pv 0.8477  total 1.7240
+gflops 2.4  softmax_gbs 0.2
+max_err 4.633e-08 (1 rows checked)  PASS
+csv,v0,1,16384,64,0.0221,0.8541,0.8477,1.7240,2.4,4.633e-08,PASS
+version v1  Nq 1  Nk 16384  d 64
+time_ms  qk 0.0120  softmax 0.0184  pv 0.8171  total 0.8476
+gflops 4.9  softmax_gbs 7.1
+max_err 5.284e-08 (1 rows checked)  PASS
+csv,v1,1,16384,64,0.0120,0.0184,0.8171,0.8476,4.9,5.284e-08,PASS
+version v2a  Nq 1  Nk 16384  d 64
+time_ms  qk 0.0506  softmax 0.0183  pv 0.5755  total 0.6444
+gflops 6.5  softmax_gbs 7.2
+max_err 5.284e-08 (1 rows checked)  PASS
+csv,v2a,1,16384,64,0.0506,0.0183,0.5755,0.6444,6.5,5.284e-08,PASS
+version v2b  Nq 1  Nk 16384  d 64
+time_ms  qk 0.0282  softmax 0.0184  pv 0.5748  total 0.6221
+gflops 6.7  softmax_gbs 7.1
+max_err 5.284e-08 (1 rows checked)  PASS
+csv,v2b,1,16384,64,0.0282,0.0184,0.5748,0.6221,6.7,5.284e-08,PASS
+version v3  Nq 1  Nk 16384  d 64
+time_ms  qk 0.0158  softmax 0.0080  pv 0.5796  total 0.6036
+gflops 6.9  softmax_gbs 16.3
+max_err 5.843e-08 (1 rows checked)  PASS
+csv,v3,1,16384,64,0.0158,0.0080,0.5796,0.6036,6.9,5.843e-08,PASS
+version cpu_omp  Nq 1  Nk 65536  d 64  threads 24
+time_ms total 3.0987
+gflops 5.4
+max_err 5.199e-08 (1 rows checked)  PASS
+csv,cpu_omp,1,65536,64,-,-,-,3.0987,5.4,5.199e-08,PASS
+version cpu_serial  Nq 1  Nk 65536  d 64  threads 1
+time_ms total 1.7973
+gflops 9.3
+max_err 5.199e-08 (1 rows checked)  PASS
+csv,cpu_serial,1,65536,64,-,-,-,1.7973,9.3,5.199e-08,PASS
+version torch_naive  Nq 1  Nk 65536  d 64  threads 24
+time_ms total 0.4132
+max_err vs cpp 4.424e-08  PASS
+csv,torch_naive,1,65536,64,-,-,-,0.4132,40.6,4.424e-08,PASS
+version torch_sdpa  Nq 1  Nk 65536  d 64  threads 24
+time_ms total 1.1880
+max_err vs cpp 1.048e-08  PASS
+csv,torch_sdpa,1,65536,64,-,-,-,1.1880,14.1,1.048e-08,PASS
+version torch_cuda_naive  Nq 1  Nk 65536  d 64  threads 0
+time_ms total 0.0443
+max_err vs cpp 5.169e-08  PASS
+csv,torch_cuda_naive,1,65536,64,-,-,-,0.0443,378.6,5.169e-08,PASS
+version torch_cuda_sdpa  Nq 1  Nk 65536  d 64  threads 0
+time_ms total 6.3915
+max_err vs cpp 5.355e-08  PASS
+csv,torch_cuda_sdpa,1,65536,64,-,-,-,6.3915,2.6,5.355e-08,PASS
+version v0  Nq 1  Nk 65536  d 64
+time_ms  qk 0.0811  softmax 8.2434  pv 3.3771  total 11.7038
+gflops 1.4  softmax_gbs 0.1
+max_err 3.372e-08 (1 rows checked)  PASS
+csv,v0,1,65536,64,0.0811,8.2434,3.3771,11.7038,1.4,3.372e-08,PASS
+version v1  Nq 1  Nk 65536  d 64
+time_ms  qk 0.0323  softmax 0.1146  pv 3.2574  total 3.4046
+gflops 4.9  softmax_gbs 4.6
+max_err 3.304e-08 (1 rows checked)  PASS
+csv,v1,1,65536,64,0.0323,0.1146,3.2574,3.4046,4.9,3.304e-08,PASS
+version v2a  Nq 1  Nk 65536  d 64
+time_ms  qk 0.1751  softmax 0.1127  pv 2.2896  total 2.5781
+gflops 6.5  softmax_gbs 4.7
+max_err 3.304e-08 (1 rows checked)  PASS
+csv,v2a,1,65536,64,0.1751,0.1127,2.2896,2.5781,6.5,3.304e-08,PASS
+version v2b  Nq 1  Nk 65536  d 64
+time_ms  qk 0.1003  softmax 0.1514  pv 2.3921  total 2.6438
+gflops 6.3  softmax_gbs 3.5
+max_err 3.304e-08 (1 rows checked)  PASS
+csv,v2b,1,65536,64,0.1003,0.1514,2.3921,2.6438,6.3,3.304e-08,PASS
+version v3  Nq 1  Nk 65536  d 64
+time_ms  qk 0.0568  softmax 0.0369  pv 2.3952  total 2.4899
+gflops 6.7  softmax_gbs 14.2
+max_err 3.304e-08 (1 rows checked)  PASS
+csv,v3,1,65536,64,0.0568,0.0369,2.3952,2.4899,6.7,3.304e-08,PASS
+## thread scaling, N = 4096
+version cpu_omp  Nq 4096  Nk 4096  d 64  threads 1
+time_ms total 292.7907
+gflops 14.7
+max_err 1.015e-07 (16 rows checked)  PASS
+csv,cpu_omp,4096,4096,64,-,-,-,292.7907,14.7,1.015e-07,PASS
+version cpu_omp  Nq 4096  Nk 4096  d 64  threads 2
+time_ms total 178.4691
+gflops 24.1
+max_err 1.015e-07 (16 rows checked)  PASS
+csv,cpu_omp,4096,4096,64,-,-,-,178.4691,24.1,1.015e-07,PASS
+version cpu_omp  Nq 4096  Nk 4096  d 64  threads 4
+time_ms total 106.1665
+gflops 40.5
+max_err 1.015e-07 (16 rows checked)  PASS
+csv,cpu_omp,4096,4096,64,-,-,-,106.1665,40.5,1.015e-07,PASS
+version cpu_omp  Nq 4096  Nk 4096  d 64  threads 8
+time_ms total 69.1320
+gflops 62.1
+max_err 1.015e-07 (16 rows checked)  PASS
+csv,cpu_omp,4096,4096,64,-,-,-,69.1320,62.1,1.015e-07,PASS
+version cpu_omp  Nq 4096  Nk 4096  d 64  threads 16
+time_ms total 51.1683
+gflops 83.9
+max_err 1.015e-07 (16 rows checked)  PASS
+csv,cpu_omp,4096,4096,64,-,-,-,51.1683,83.9,1.015e-07,PASS
+version cpu_omp  Nq 4096  Nk 4096  d 64  threads 24
+time_ms total 48.0841
+gflops 89.3
+max_err 1.015e-07 (16 rows checked)  PASS
+csv,cpu_omp,4096,4096,64,-,-,-,48.0841,89.3,1.015e-07,PASS
