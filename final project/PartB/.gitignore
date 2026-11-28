@@ -1,0 +1,6 @@
+# 编译产物和 Euler 实测结果留在本地；源代码、脚本和说明仍由 Git 跟踪。
+bench_b
+results/
+b_*.out
+b_*.err
+__pycache__/
